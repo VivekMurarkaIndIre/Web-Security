@@ -10,6 +10,8 @@ const envSchema = z.object({
   JWT_AUDIENCE: z.string(),
   JWT_ACCESS_TTL: z.coerce.number().default(900),
   JWT_REFRESH_TTL: z.coerce.number().default(604800),
+
+  OIDC_ISSUER: z.url(),
 });
 
 export type Env = z.infer<typeof envSchema>;

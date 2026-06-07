@@ -1,5 +1,16 @@
 # Changelog
 
+## OIDC Discovery Document — 2026-06-07
+
+**What changed:**
+- `src/routes/oidc.ts` — new router exposing `GET /.well-known/openid-configuration` (full metadata JSON) and `GET /.well-known/jwks.json` (empty key set for HS256); all URLs derived from `OIDC_ISSUER`
+- `src/config/env.ts` — added `OIDC_ISSUER` as a validated URL env var
+- `src/server.ts` — mounted `oidcRouter` at root before `authRouter` so `/.well-known/*` resolves at the standard path
+- `.env` — added `OIDC_ISSUER=http://localhost:3000`
+
+**What we learned:**
+- The discovery document is a machine-readable contract, not just documentation — OIDC client libraries fetch it at startup and use it to auto-configure every endpoint. Deriving all URLs from a single `OIDC_ISSUER` env var means the document stays self-consistent: one variable change updates every pointer. The `jwks_uri` endpoint must exist even when empty because clients unconditionally fetch it to verify token signatures — a 404 there breaks the entire integration.
+
 ## PKCE (Proof Key for Code Exchange) — 2026-06-07
 
 **What changed:**

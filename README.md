@@ -9,3 +9,4 @@ A hands-on auth engineering lab built topic by topic.
 - [Role-Based Access Control (RBAC)](resources/role-based-access-control.md)
 - [OAuth 2.0 Authorization Code Flow](resources/oauth2-authorization-code-flow.md)
 - [PKCE (Proof Key for Code Exchange)](resources/pkce.md)
+- [OIDC Discovery Document](resources/oidc-discovery.md)

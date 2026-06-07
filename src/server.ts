@@ -4,12 +4,14 @@ import { signTokenPair, verifyToken } from './services/token.js';
 import { tenantMiddleware, getContext } from './middleware/tenant.js';
 import { authenticate } from './middleware/authenticate.js';
 import { requirePermission, requireRole } from './middleware/rbac.js';
+import { oidcRouter } from './routes/oidc.js';
 import { authRouter } from './routes/auth.js';
 
 const app = express();
 
 app.use(express.json());
 app.use(tenantMiddleware);
+app.use(oidcRouter);
 app.use('/auth', authRouter);
 
 app.get('/health', (_req, res) => {

@@ -1,5 +1,16 @@
 # Changelog
 
+## JWT signing + verification with jose — 2026-06-07
+
+**What changed:**
+- `src/services/token.ts` — new service using the `jose` library to sign HS256 access and refresh token pairs, and verify tokens with issuer/audience checks
+- `src/config/env.ts` — added `JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_ACCESS_TTL`, `JWT_REFRESH_TTL` env vars; switched from `safeParse` return value to `process.exit(1)` on failure so `env` is exported as a plain validated object
+- `src/server.ts` — added a temporary `/test-token` smoke-test route; updated `app.listen` to use the now-direct `env.PORT` / `env.HOST`
+- `package.json` — added `jose` dependency
+
+**What we learned:**
+- `jose` requires the secret as a `Uint8Array`, not a raw string — wrapping with `new TextEncoder().encode()` is the idiom. Separating access and refresh tokens at signing time (different TTLs, a `type: 'refresh'` claim) keeps verification simple: the server can reject a refresh token used as an access token by checking claims, not by maintaining a separate token store. Failing fast with `process.exit(1)` during env validation (rather than throwing inside the module) avoids partially-initialised module state that can cause confusing downstream errors.
+
 ## Express server + Zod env validation — 2026-06-07
 
 **What changed:**

@@ -1,5 +1,13 @@
 # Changelog
 
+## curl Cheatsheet — 2026-06-07
+
+**What changed:**
+- `README.md` — added a full curl cheatsheet covering every endpoint built so far: health check, tenant context, JWT issuance, authentication middleware, RBAC (200/403/401 cases), full OAuth 2.0 authorization code flow with chained script, PKCE correct and wrong verifier cases, OIDC discovery, and env validation failure test; all with expected outputs
+
+**What we learned:**
+- Documenting curl commands with expected outputs as you build is more useful than writing them after the fact — the output captures the exact error shapes and status codes that matter for debugging, and the chained scripts remove the manual copy-paste step that hides extraction bugs like the macOS `\r` CRLF issue.
+
 ## OIDC Discovery Document — 2026-06-07
 
 **What changed:**

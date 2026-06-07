@@ -1,5 +1,15 @@
 # Changelog
 
+## OAuth 2.0 Authorization Code Flow — 2026-06-07
+
+**What changed:**
+- `src/routes/auth.ts` — new router with `GET /auth/authorize` (code issuance) and `POST /auth/token` (code exchange + refresh token rotation); in-memory `pendingCodes` map for single-use code storage; Zod discriminated union on `grant_type`
+- `src/services/token.ts` — added `rotateRefreshToken` which verifies the incoming refresh token, rejects it if already revoked, revokes its `jti`, then issues a fresh token pair
+- `src/server.ts` — mounted `authRouter` at `/auth`
+
+**What we learned:**
+- The authorization code exists solely to keep tokens out of URLs — it is a single-use throwaway that only has value for the party who knows the `redirect_uri`. The token only travels over a back-channel POST, never in a redirect. Refresh token rotation enforces one-time use: the moment a refresh token is used, it is revoked and a new one issued. If the old token is ever presented again, it signals a stolen token being replayed — return 401 and treat the session as compromised.
+
 ## Role-Based Access Control (RBAC) — 2026-06-07
 
 **What changed:**

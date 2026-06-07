@@ -61,6 +61,30 @@ export async function revokeToken(jti: string): Promise<void> {
   revokedSet.add(jti);
 }
 
+export async function rotateRefreshToken(refreshToken: string): Promise<TokenPair> {
+  // 1. Verify the refresh token — same secret, issuer, audience
+  const { payload } = await jwtVerify(refreshToken, secret, {
+    issuer: env.JWT_ISSUER,
+    audience: env.JWT_AUDIENCE,
+  });
+
+  const jti = payload.jti as string;
+
+  // 2. Reject if already revoked — detects replay after rotation
+  if (await isTokenRevoked(jti)) {
+    throw new Error('refresh_token_reuse_detected');
+  }
+
+  // 3. Revoke the old jti — one-time use enforced
+  await revokeToken(jti);
+
+  const sub       = payload.sub as string;
+  const roles     = (payload['roles'] as string[]) ?? [];
+  const tenantId  = (payload['tenant_id'] as string) ?? 'default';
+
+  return signTokenPair(sub, roles, tenantId);
+}
+
 export async function verifyToken(token: string): Promise<JwtPayload> {
   const { payload } = await jwtVerify(token, secret, {
     issuer: env.JWT_ISSUER,

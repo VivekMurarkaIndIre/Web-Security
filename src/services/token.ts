@@ -50,6 +50,17 @@ export async function signTokenPair(
   return { accessToken, refreshToken, expiresIn: env.JWT_ACCESS_TTL };
 }
 
+// In-memory stub — replace with Redis SADD/SISMEMBER in production
+const revokedSet = new Set<string>();
+
+export async function isTokenRevoked(jti: string): Promise<boolean> {
+  return revokedSet.has(jti);
+}
+
+export async function revokeToken(jti: string): Promise<void> {
+  revokedSet.add(jti);
+}
+
 export async function verifyToken(token: string): Promise<JwtPayload> {
   const { payload } = await jwtVerify(token, secret, {
     issuer: env.JWT_ISSUER,

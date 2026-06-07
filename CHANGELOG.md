@@ -1,5 +1,17 @@
 # Changelog
 
+## JWT Authentication Middleware — 2026-06-07
+
+**What changed:**
+- `src/middleware/authenticate.ts` — new middleware that extracts and verifies Bearer JWTs, checks a JTI revocation list, attaches decoded claims to `req.user`, and backfills `userId` into the `AsyncLocalStorage` tenant context
+- `src/types/express.d.ts` — module augmentation extending Express `Request` with `user?: JwtPayload` for full type safety in handlers
+- `src/services/token.ts` — added in-memory `revokedSet` with `isTokenRevoked` and `revokeToken` helpers (Redis stub for production)
+- `src/server.ts` — wired `authenticate` middleware to a `/test-auth` smoke-test route; minor comment cleanup
+- `src/middleware/tenant.ts` — added an explanatory comment describing why `AsyncLocalStorage` is safe for per-request context
+
+**What we learned:**
+- The 401 error body should be deliberately vague (`invalid_token`) regardless of which check failed — returning distinct codes per failure gives an attacker a precise oracle. Log the real reason internally; lie to the client. The other key pattern: the JTI claim exists precisely so you can revoke individual tokens without invalidating the whole signing key.
+
 ## AsyncLocalStorage Tenant Context — 2026-06-07
 
 **What changed:**

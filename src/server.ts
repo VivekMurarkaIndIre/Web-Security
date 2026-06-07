@@ -2,6 +2,7 @@ import express from 'express';
 import { env } from './config/env.js';
 import { signTokenPair, verifyToken } from './services/token.js';
 import { tenantMiddleware, getContext } from './middleware/tenant.js';
+import { authenticate } from './middleware/authenticate.js';
 
 const app = express();
 
@@ -12,17 +13,22 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Temporary smoke test — remove after Topic 3
+// Temporary — remove after Topic 3
 app.get('/test-token', async (_req, res) => {
   const tokens = await signTokenPair('user_001', ['viewer'], 'tenant_demo');
   const payload = await verifyToken(tokens.accessToken);
   res.json({ tokens, payload });
 });
 
-// Temporary smoke test — remove after Topic 4
+// Temporary — remove after Topic 4
 app.get('/test-context', (_req, res) => {
   const ctx = getContext();
   res.json(ctx);
+});
+
+// Temporary — remove after Topic 5
+app.get('/test-auth', authenticate, (req, res) => {
+  res.json({ user: req.user, context: getContext() });
 });
 
 app.listen(env.PORT, env.HOST, () => {

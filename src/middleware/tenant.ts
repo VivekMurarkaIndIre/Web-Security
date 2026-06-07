@@ -7,6 +7,12 @@ export interface TenantContext {
   userId: string;
   requestId: string;
 }
+/* AsyncLocalStorage provides a way to store data that is scoped to the current asynchronous execution context.
+  * In an Express app, each incoming request creates a new async context, so we can use this to store per-request data
+  * without worrying about concurrency issues that arise with shared mutable state.
+  * This is especially useful for multi-tenant applications, where we want to keep track of which tenant is making the request
+  * and any other relevant metadata (like user ID, request ID, etc.) without passing it through every function call.
+  */
 
 export const tenantStorage = new AsyncLocalStorage<TenantContext>();
 

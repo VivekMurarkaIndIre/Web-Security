@@ -1,5 +1,14 @@
 # Changelog
 
+## Role-Based Access Control (RBAC) — 2026-06-07
+
+**What changed:**
+- `src/middleware/rbac.ts` — new middleware with `requirePermission` and `requireRole` guards; a static `ROLE_PERMISSIONS` map derives `Resource:Action` permissions from JWT roles at check-time
+- `src/server.ts` — three new protected routes wiring `authenticate` + `requirePermission`/`requireRole` together (`/admin/users`, `/admin/billing`, `/admin/audit`)
+
+**What we learned:**
+- Permissions belong on the server, roles belong in the token. Baking permissions into the JWT means re-issuing tokens every time policy changes; checking the database on every request throws away the benefit of stateless auth. The role-in-token / permission-on-server split buys both: stateless verification and instantly-effective policy updates. TypeScript template literal types (`\`${Resource}:${Action}\``) also make invalid permission strings a compile-time error, not a runtime typo.
+
 ## JWT Authentication Middleware — 2026-06-07
 
 **What changed:**

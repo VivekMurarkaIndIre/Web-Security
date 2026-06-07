@@ -6,3 +6,4 @@ A hands-on auth engineering lab built topic by topic.
 
 - [AsyncLocalStorage Tenant Context](resources/asynclocalstorage-tenant-context.md)
 - [JWT Authentication Middleware](resources/jwt-auth-middleware.md)
+- [Role-Based Access Control (RBAC)](resources/role-based-access-control.md)

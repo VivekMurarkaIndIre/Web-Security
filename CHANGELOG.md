@@ -1,5 +1,15 @@
 # Changelog
 
+## AsyncLocalStorage Tenant Context — 2026-06-07
+
+**What changed:**
+- `src/middleware/tenant.ts` — new middleware that uses `AsyncLocalStorage` to scope `tenantId`, `userId`, and `requestId` to each request's async call tree
+- `src/server.ts` — wired in `tenantMiddleware` globally and added a `/test-context` smoke-test route that calls `getContext()`
+- `.claude/commands/commit.md` — updated commit command to generate topic resource files and update README
+
+**What we learned:**
+- `AsyncLocalStorage.run(value, callback)` scopes the store only to the async subtree inside the callback — making it safe for concurrent requests. The footgun is `enterWith()`, which mutates the current context and can bleed across concurrent requests; never use it in Express middleware.
+
 ## JWT signing + verification with jose — 2026-06-07
 
 **What changed:**

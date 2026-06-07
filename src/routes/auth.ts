@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { signTokenPair, rotateRefreshToken } from '../services/token.js';
 
@@ -12,6 +13,7 @@ interface PendingCode {
   sub: string;
   roles: string[];
   tenantId: string;
+  codeChallenge?: string; // SHA-256(code_verifier), base64url — present only for PKCE flows
 }
 const pendingCodes = new Map<string, PendingCode>();
 
@@ -23,6 +25,8 @@ const authorizeSchema = z.object({
   redirect_uri: z.url(),
   scope: z.string().default('openid'),
   state: z.string().optional(),
+  code_challenge: z.string().optional(),
+  code_challenge_method: z.literal('S256').optional(),
 });
 
 const tokenSchema = z.discriminatedUnion('grant_type', [
@@ -30,6 +34,7 @@ const tokenSchema = z.discriminatedUnion('grant_type', [
     grant_type: z.literal('authorization_code'),
     code: z.string(),
     redirect_uri: z.url(),
+    code_verifier: z.string().optional(),
   }),
   z.object({
     grant_type: z.literal('refresh_token'),
@@ -49,7 +54,7 @@ authRouter.get('/authorize', (req, res) => {
     return;
   }
 
-  const { client_id, redirect_uri, state } = result.data;
+  const { client_id, redirect_uri, state, code_challenge } = result.data;
 
   // Generate a single-use random code
   const code = randomCode();
@@ -59,6 +64,7 @@ authRouter.get('/authorize', (req, res) => {
     sub: 'user_001',       // stub — real IdP resolves from login session
     roles: ['viewer'],
     tenantId: 'tenant_demo',
+    codeChallenge: code_challenge,
   });
 
   const dest = new URL(redirect_uri);
@@ -89,6 +95,18 @@ authRouter.post('/token', async (req, res) => {
       return;
     }
 
+    // PKCE check — if the code was issued with a challenge, the verifier is required
+    if (pending.codeChallenge) {
+      if (!body.code_verifier) {
+        res.status(400).json({ error: 'invalid_grant', detail: 'code_verifier required' });
+        return;
+      }
+      if (!verifyChallengeHash(body.code_verifier, pending.codeChallenge)) {
+        res.status(400).json({ error: 'invalid_grant' });
+        return;
+      }
+    }
+
     // One-time use — delete immediately
     pendingCodes.delete(body.code);
 
@@ -115,4 +133,10 @@ function randomCode(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(16)))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
+}
+
+// SHA-256(verifier) in base64url must match the stored challenge
+function verifyChallengeHash(verifier: string, storedChallenge: string): boolean {
+  const hash = createHash('sha256').update(verifier).digest('base64url');
+  return hash === storedChallenge;
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## PKCE (Proof Key for Code Exchange) — 2026-06-07
+
+**What changed:**
+- `src/routes/auth.ts` — added `code_challenge` and `code_challenge_method` to `authorizeSchema`; added `code_verifier` to the `authorization_code` branch of `tokenSchema`; stored `codeChallenge` in `PendingCode`; added PKCE verification block in `/token` using `verifyChallengeHash`
+- `src/routes/auth.ts` — added `verifyChallengeHash` helper using Node's `createHash('sha256').digest('base64url')` to verify the code exchange without any external library
+
+**What we learned:**
+- PKCE's security comes from the one-way nature of SHA-256: the server stores only the hash during `/authorize`, so intercepting the redirect gives an attacker a useless code — they cannot reverse the hash to produce the verifier. The verifier is only revealed at the `/token` step, over a direct POST that is not exposed in URLs or browser history. The `S256` method is the only correct choice; `plain` sends the verifier in the clear and provides no protection.
+
 ## OAuth 2.0 Authorization Code Flow — 2026-06-07
 
 **What changed:**
